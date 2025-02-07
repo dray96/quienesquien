@@ -2,6 +2,10 @@
 
 Una versión web multijugador del clásico juego de mesa "¿Quién es Quién?" implementada con WebSockets.
 
+## Demostración en vivo
+
+[Próximamente]
+
 ## Características
 
 - Juego multijugador en tiempo real
@@ -10,6 +14,8 @@ Una versión web multijugador del clásico juego de mesa "¿Quién es Quién?" i
 - Chat integrado para preguntas y respuestas
 - Temporizadores para selección y turnos
 - Reconexión automática
+- Modo claro/oscuro
+- Filtros rápidos para descarte de personajes
 
 ## Tecnologías Utilizadas
 
@@ -26,7 +32,7 @@ Una versión web multijugador del clásico juego de mesa "¿Quién es Quién?" i
 
 1. Clonar el repositorio:
 ```bash
-git clone [URL_DEL_REPOSITORIO]
+git clone https://github.com/TU_USUARIO/quienesquien.git
 cd quien-es-quien
 ```
 

@@ -1,0 +1,201 @@
+{
+    "characters": [
+        {
+            "id": 1,
+            "name": "María",
+            "image": "/img/maria.jpg",
+            "attributes": {
+                "genero": "mujer",
+                "pelo": "rubio",
+                "ojos": "azules",
+                "gafas": true,
+                "sombrero": false,
+                "barba": false
+            }
+        },
+        {
+            "id": 2,
+            "name": "Juan",
+            "image": "/img/juan.jpg",
+            "attributes": {
+                "genero": "hombre",
+                "pelo": "negro",
+                "ojos": "marrones",
+                "gafas": false,
+                "sombrero": true,
+                "barba": false
+            }
+        },
+        {
+            "id": 3,
+            "name": "Ana",
+            "image": "/img/ana.jpg",
+            "attributes": {
+                "genero": "mujer",
+                "pelo": "castaño",
+                "ojos": "verdes",
+                "gafas": true,
+                "sombrero": true,
+                "barba": false
+            }
+        },
+        {
+            "id": 4,
+            "name": "Carlos",
+            "image": "/img/carlos.jpg",
+            "attributes": {
+                "genero": "hombre",
+                "pelo": "castaño",
+                "ojos": "marrones",
+                "gafas": true,
+                "sombrero": false,
+                "barba": false
+            }
+        },
+        {
+            "id": 5,
+            "name": "Laura",
+            "image": "/img/laura.jpg",
+            "attributes": {
+                "genero": "mujer",
+                "pelo": "negro",
+                "ojos": "marrones",
+                "gafas": false,
+                "sombrero": true,
+                "barba": false
+            }
+        },
+        {
+            "id": 6,
+            "name": "Pedro",
+            "image": "/img/pedro.jpg",
+            "attributes": {
+                "genero": "hombre",
+                "pelo": "rubio",
+                "ojos": "verdes",
+                "gafas": false,
+                "sombrero": false,
+                "barba": true
+            }
+        },
+        {
+            "id": 7,
+            "name": "Sofía",
+            "image": "/img/sofia.jpg",
+            "attributes": {
+                "genero": "mujer",
+                "pelo": "rubio",
+                "ojos": "azules",
+                "gafas": true,
+                "sombrero": false,
+                "barba": false
+            }
+        },
+        {
+            "id": 8,
+            "name": "Miguel",
+            "image": "/img/miguel.jpg",
+            "attributes": {
+                "genero": "hombre",
+                "pelo": "rubio",
+                "ojos": "marrones",
+                "gafas": true,
+                "sombrero": true,
+                "barba": false
+            }
+        },
+        {
+            "id": 9,
+            "name": "Lucía",
+            "image": "/img/lucia.jpg",
+            "attributes": {
+                "genero": "mujer",
+                "pelo": "pelirojo",
+                "ojos": "negros",
+                "gafas": true,
+                "sombrero": false,
+                "barba": false
+            }
+        },
+        {
+            "id": 10,
+            "name": "Enrique",
+            "image": "/img/enrique.jpg",
+            "attributes": {
+                "genero": "hombre",
+                "pelo": "castaño",
+                "ojos": "verde",
+                "gafas": false,
+                "sombrero": false,
+                "barba": true
+            }
+        },
+        {
+            "id": 11,
+            "name": "Carmen",
+            "image": "/img/carmen.jpg",
+            "attributes": {
+                "genero": "mujer",
+                "pelo": "blanco",
+                "ojos": "azules",
+                "gafas": false,
+                "sombrero": true,
+                "barba": false
+            }
+        },
+        {
+            "id": 12,
+            "name": "Diego",
+            "image": "/img/diego.jpg",
+            "attributes": {
+                "genero": "hombre",
+                "pelo": "negro",
+                "ojos": "verde",
+                "gafas": true,
+                "sombrero": false,
+                "barba": false
+            }
+        },
+        {
+            "id": 13,
+            "name": "Elba",
+            "image": "/img/elba.jpg",
+            "attributes": {
+                "genero": "mujer",
+                "pelo": "castaño",
+                "ojos": "marrones",
+                "gafas": false,
+                "sombrero": false,
+                "barba": false
+            }
+        },
+        {
+            "id": 14,
+            "name": "Pablo",
+            "image": "/img/pablo.jpg",
+            "attributes": {
+                "genero": "hombre",
+                "pelo": "pelado",
+                "ojos": "azules",
+                "gafas": false,
+                "sombrero": false,
+                "barba": true
+            }
+        },
+        {
+            "id": 15,
+            "name": "Marcela",
+            "image": "/img/marcela.jpg",
+            "attributes": {
+                "genero": "mujer",
+                "pelo": "castaño",
+                "ojos": "verde claro",
+                "gafas": false,
+                "sombrero": false,
+                "barba": false
+            }
+        }
+    ]
+
+
+} 

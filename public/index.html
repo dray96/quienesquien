@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¿Quién es Quién? - Multijugador</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <i class="fas fa-sun"></i>
+        <span>Cambiar Tema</span>
+    </button>
+    <div id="app">
+        <!-- Pantalla de inicio -->
+        <div id="start-screen" class="screen">
+            <h1>¿Quién es Quién?</h1>
+            <div class="form-group">
+                <input type="text" id="nickname" placeholder="Tu nombre">
+            </div>
+            <div class="buttons">
+                <button id="create-game">Crear Partida</button>
+                <button id="join-game-btn">Unirse a Partida</button>
+            </div>
+            <div id="join-game-form" class="hidden">
+                <input type="text" id="game-code" placeholder="Código de partida">
+                <button id="join-game">Unirse</button>
+            </div>
+        </div>
+
+        <!-- Pantalla de selección de personaje -->
+        <div id="character-select" class="screen hidden">
+            <h2>Selecciona tu personaje</h2>
+            <div id="timer">Tiempo restante: <span id="time">20</span>s</div>
+            <div id="characters-grid"></div>
+        </div>
+
+        <!-- Pantalla de juego -->
+        <div id="game-screen" class="screen hidden">
+            <div class="game-layout">
+                <div class="sidebar">
+                    <div class="player-info">
+                        <img id="player-character" src="" alt="Tu personaje">
+                        <h3 id="player-name"></h3>
+                    </div>
+                    <div class="chat-box">
+                        <div id="chat-history"></div>
+                        <div class="answer-buttons hidden">
+                            <button id="answer-yes">Sí</button>
+                            <button id="answer-no">No</button>
+                        </div>
+                        <div class="question-input">
+                            <input type="text" id="question" placeholder="Haz una pregunta...">
+                            <button id="send-question">Enviar</button>
+                        </div>
+                        <button id="guess-button" class="guess-button">ADIVINAR</button>
+                    </div>
+                </div>
+                <div class="game-board">
+                    <div class="game-board-layout">
+                        <div id="opponents-characters"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para adivinar -->
+        <div id="guess-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>¿Quién crees que es el personaje de tu oponente?</h2>
+                <div class="guess-characters-grid"></div>
+                <div class="modal-buttons">
+                    <button id="confirm-guess" class="confirm-guess-btn">Creo que es éste</button>
+                    <button id="cancel-guess" class="cancel-guess-btn">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de resultado -->
+        <div id="result-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2 id="result-message"></h2>
+                <button id="close-result" class="close-result-btn">Cerrar</button>
+            </div>
+        </div>
+
+        <!-- Modal de código de partida -->
+        <div id="game-code-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Copia el código y envíaselo a tu amigo</h2>
+                <div class="game-code-container">
+                    <span id="game-code-display"></span>
+                    <button id="copy-code" class="copy-code-btn">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <span id="copy-confirmation" class="copy-confirmation hidden">Código copiado</span>
+                <button id="accept-code" class="accept-code-btn">Aceptar</button>
+            </div>
+        </div>
+    </div>
+    <script src="js/avatarPlaceholder.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html> 
