@@ -151,7 +151,7 @@
                 "genero": "hombre",
                 "pelo": "negro",
                 "ojos": "verde",
-                "gafas": true,
+                "gafas": false,
                 "sombrero": false,
                 "barba": false
             }

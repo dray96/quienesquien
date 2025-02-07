@@ -22,40 +22,13 @@ const screens = {
     game: document.getElementById('game-screen')
 };
 
-// Gestión del tema
-function toggleTheme() {
-    const html = document.documentElement;
-    const themeButton = document.querySelector('.theme-toggle');
-    const icon = themeButton.querySelector('i');
-    
-    if (html.getAttribute('data-theme') === 'dark') {
-        html.setAttribute('data-theme', 'light');
-        icon.className = 'fas fa-sun';
-    } else {
-        html.setAttribute('data-theme', 'dark');
-        icon.className = 'fas fa-moon';
-    }
-    
-    // Guardar preferencia en localStorage
-    localStorage.setItem('theme', html.getAttribute('data-theme'));
-}
-
-// Cargar tema guardado
-function loadSavedTheme() {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        const themeButton = document.querySelector('.theme-toggle');
-        const icon = themeButton.querySelector('i');
-        icon.className = savedTheme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
-    }
-}
+// Declaración de variable global para el temporizador de pregunta
+let questionTimer = null;
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', () => {
     initializeEventListeners();
     connectWebSocket();
-    loadSavedTheme(); // Cargar tema guardado
 });
 
 // Inicializar listeners de eventos
@@ -76,42 +49,47 @@ function initializeEventListeners() {
 function connectWebSocket() {
     console.log('Intentando conectar al WebSocket:', WS_URL);
     
-    ws = new WebSocket(WS_URL);
-    
-    ws.onopen = () => {
-        console.log('Conectado al servidor WebSocket');
-        reconnectAttempts = 0; // Resetear intentos al conectar exitosamente
-    };
-    
-    ws.onmessage = (event) => {
-        try {
-            const data = JSON.parse(event.data);
-            console.log('Mensaje recibido:', data);
-            handleWebSocketMessage(data);
-        } catch (error) {
-            console.error('Error al procesar mensaje:', error);
-        }
-    };
-    
-    ws.onclose = (event) => {
-        console.log('Desconectado del servidor WebSocket:', event.code, event.reason);
+    try {
+        ws = new WebSocket(WS_URL);
         
-        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-            const timeout = Math.min(1000 * Math.pow(2, reconnectAttempts), 10000);
-            console.log(`Reintentando conexión en ${timeout/1000} segundos...`);
+        ws.onopen = () => {
+            console.log('Conectado al servidor WebSocket');
+            reconnectAttempts = 0;
+        };
+        
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                console.log('Mensaje recibido:', data);
+                handleWebSocketMessage(data);
+            } catch (error) {
+                console.error('Error al procesar mensaje:', error);
+            }
+        };
+        
+        ws.onclose = (event) => {
+            console.log('Desconectado del servidor WebSocket:', event.code, event.reason);
             
-            setTimeout(() => {
-                reconnectAttempts++;
-                connectWebSocket();
-            }, timeout);
-        } else {
-            alert('Error de conexión con el servidor. Por favor, recarga la página.');
-        }
-    };
+            if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+                const timeout = Math.min(1000 * Math.pow(2, reconnectAttempts), 10000);
+                console.log(`Reintentando conexión en ${timeout/1000} segundos...`);
+                
+                setTimeout(() => {
+                    reconnectAttempts++;
+                    connectWebSocket();
+                }, timeout);
+            } else {
+                alert('Error de conexión con el servidor. Por favor, recarga la página.');
+            }
+        };
 
-    ws.onerror = (error) => {
-        console.error('Error en WebSocket:', error);
-    };
+        ws.onerror = (error) => {
+            console.error('Error en WebSocket:', error);
+        };
+    } catch (error) {
+        console.error('Error al crear la conexión WebSocket:', error);
+        alert('Error al conectar con el servidor. Por favor, verifica tu conexión a internet.');
+    }
 }
 
 // Manejar mensajes WebSocket
@@ -254,45 +232,76 @@ function handleGameReady(data) {
     gameState.currentTurn = data.currentTurn;
     gameState.isMyTurn = data.yourTurn;
     
-    // Actualizar el nombre del rival
     document.getElementById('rival-name').textContent = data.opponent.nick;
     
     showScreen('game');
     updateGameBoard();
     updateTurnIndicator();
 
-    // Deshabilitar el input de pregunta para el jugador que se une (no es su turno inicial)
     const questionInput = document.getElementById('question');
     const sendButton = document.getElementById('send-question');
+    const guessButton = document.getElementById('guess-button');
+    const timerElement = document.getElementById('question-timer');
     
-    if (!gameState.isMyTurn) {
+    if (gameState.isMyTurn) {
+        questionInput.disabled = false;
+        sendButton.disabled = false;
+        guessButton.disabled = false;
+        guessButton.style.opacity = '1';
+        guessButton.style.cursor = 'pointer';
+        startQuestionTimer();
+    } else {
         questionInput.disabled = true;
         sendButton.disabled = true;
+        guessButton.disabled = true;
+        guessButton.style.opacity = '0.5';
+        guessButton.style.cursor = 'not-allowed';
+        
+        // Mostrar mensaje de espera y temporizador del rival
+        //let opponentTime = 25;
+        timerElement.textContent = `Espera tu turno`;
+        timerElement.classList.add('waiting');
+        //
+        //const opponentTimer = setInterval(() => {
+        //    opponentTime--;
+        //    if (opponentTime > 0) {
+        //        timerElement.textContent = `Espera tu turno (${opponentTime}s)`;
+        //    } else {
+        //        clearInterval(opponentTimer);
+        //    }
+        //}, 1000);
     }
 }
 
 function handleQuickFilter(e) {
     const button = e.currentTarget;
-    const filter = button.dataset.filter;
-    const value = button.dataset.value;
-    
-    // Toggle estado activo del botón
     button.classList.toggle('active');
-    const isActive = button.classList.contains('active');
-    
+
+    // Obtener todos los filtros activos
+    const activeFilters = Array.from(document.querySelectorAll('.filter-btn.active')).map(btn => ({
+        filter: btn.dataset.filter,
+        value: btn.dataset.value
+    }));
+
     // Obtener todos los personajes
     const characters = document.querySelectorAll('.gallery-character');
     
     characters.forEach(character => {
-        if (isActive) {
-            // Si el botón está activo, descartamos los que NO coinciden con el filtro
-            const characterData = character.dataset;
-            if (characterData[filter] !== value) {
+        if (activeFilters.length === 0) {
+            // Si no hay filtros activos, mostrar todos los personajes
+            character.classList.remove('discarded');
+        } else {
+            // Verificar si el personaje cumple con TODOS los filtros activos
+            const matchesAllFilters = activeFilters.every(filterData => {
+                const characterValue = character.dataset[filterData.filter];
+                return characterValue === filterData.value;
+            });
+
+            if (matchesAllFilters) {
+                character.classList.remove('discarded');
+            } else {
                 character.classList.add('discarded');
             }
-        } else {
-            // Si el botón se desactiva, quitamos el descarte por este filtro
-            character.classList.remove('discarded');
         }
     });
 }
@@ -405,7 +414,7 @@ function updateGameBoard() {
 function updateTurnIndicator() {
     const turnIndicator = document.getElementById('turn-indicator');
     if (turnIndicator) {
-        turnIndicator.textContent = gameState.isMyTurn ? 'Tu turno' : 'Turno del oponente';
+        turnIndicator.textContent = gameState.isMyTurn ? 'Es tu turno' : 'Turno del oponente';
         turnIndicator.className = 'turn-indicator ' + (gameState.isMyTurn ? 'your-turn' : 'opponent-turn');
     }
 }
@@ -579,7 +588,7 @@ function handleReceiveQuestion(data) {
 }
 
 function handleQuestionSent(data) {
-    addToChatHistory(`Tú preguntas: ${data.question}`);
+    addToChatHistory(`Tú pregunta: ${data.question}`);
     // Deshabilitar el input de pregunta mientras esperamos la respuesta
     document.getElementById('question').disabled = true;
     document.getElementById('send-question').disabled = true;
@@ -591,7 +600,7 @@ function handleReceiveAnswer(data) {
     document.querySelector('.answer-buttons').classList.add('hidden');
     document.querySelector('.question-input').classList.remove('hidden');
     // cambiar color de fondo de la respuesta
-    document.querySelector('.answer-buttons').style.backgroundColor = '#0000bb';
+    //document.querySelector('.answer-buttons').style.backgroundColor = '#0000bb';
 }
 
 function handleTurnChange(data) {
@@ -599,10 +608,10 @@ function handleTurnChange(data) {
     gameState.isMyTurn = data.yourTurn;
     updateTurnIndicator();
     
-    // Actualizar la interfaz según el turno
     const questionInput = document.getElementById('question');
     const sendButton = document.getElementById('send-question');
     const guessButton = document.getElementById('guess-button');
+    const timerElement = document.getElementById('question-timer');
     
     if (gameState.isMyTurn) {
         questionInput.disabled = false;
@@ -610,12 +619,26 @@ function handleTurnChange(data) {
         guessButton.disabled = false;
         guessButton.style.opacity = '1';
         guessButton.style.cursor = 'pointer';
+        startQuestionTimer();
     } else {
         questionInput.disabled = true;
         sendButton.disabled = true;
         guessButton.disabled = true;
         guessButton.style.opacity = '0.5';
         guessButton.style.cursor = 'not-allowed';
+        // Mostrar mensaje de espera y temporizador del rival
+        //let opponentTime = 25;
+        timerElement.textContent = `Espera tu turno`;
+        timerElement.classList.add('waiting');
+        //
+        //const opponentTimer = setInterval(() => {
+        //    opponentTime--;
+        //    if (opponentTime > 0) {
+        //        timerElement.textContent = `Espera tu turno (${opponentTime}s)`;
+        //    } else {
+        //        clearInterval(opponentTimer);
+        //    }
+        //}, 1000);
     }
 }
 
@@ -640,6 +663,7 @@ function sendQuestion() {
     }));
     
     questionInput.value = '';
+    cancelQuestionTimer();
 }
 
 function sendAnswer(answer) {
@@ -661,8 +685,14 @@ function addToChatHistory(message) {
     const messageElement = document.createElement('div');
     messageElement.className = 'chat-message';
     messageElement.textContent = message;
+    
+    // Añadir el mensaje
     chatHistory.appendChild(messageElement);
-    chatHistory.scrollTop = chatHistory.scrollHeight;
+    
+    // Forzar el scroll hasta abajo
+    requestAnimationFrame(() => {
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    });
 }
 
 // Funciones para el modal de adivinanza
@@ -786,4 +816,91 @@ function handleOpponentDisconnected(data) {
     resultMessage.style.color = '#2ecc71'; // Color verde para victoria
     
     resultModal.classList.remove('hidden');
-} 
+}
+
+// Funciones para el manejo del temporizador de pregunta
+function startQuestionTimer() {
+    // Cancelar cualquier temporizador existente
+    cancelQuestionTimer();
+    let remainingTime = 30;
+    const timerElement = document.getElementById('question-timer');
+    
+    // Función para actualizar las clases del temporizador según el tiempo restante
+    const updateTimerClasses = (time) => {
+        timerElement.classList.remove('warning', 'danger');
+        if (time <= 10 && time > 5) {
+            timerElement.classList.add('warning');
+        } else if (time <= 5) {
+            timerElement.classList.add('danger');
+        }
+    };
+
+    timerElement.textContent = remainingTime + 's';
+    updateTimerClasses(remainingTime);
+
+    questionTimer = setInterval(() => {
+        remainingTime--;
+        if (remainingTime > 0) {
+            timerElement.textContent = remainingTime + 's';
+            updateTimerClasses(remainingTime);
+        } else {
+            // Limpiar el temporizador
+            timerElement.textContent = '';
+            timerElement.classList.remove('warning', 'danger');
+            
+            // Cerrar el modal de adivinanza si está abierto
+            const guessModal = document.getElementById('guess-modal');
+            if (!guessModal.classList.contains('hidden')) {
+                hideGuessModal();
+            }
+
+            // Ocultar los botones de respuesta si están visibles
+            const answerButtons = document.querySelector('.answer-buttons');
+            if (!answerButtons.classList.contains('hidden')) {
+                answerButtons.classList.add('hidden');
+                document.querySelector('.question-input').classList.remove('hidden');
+            }
+            
+            // Mostrar el modal de tiempo agotado
+            const timeoutModal = document.getElementById('timeout-modal');
+            timeoutModal.classList.remove('hidden');
+            
+            // Enviar mensaje al servidor
+            ws.send(JSON.stringify({
+                type: 'skipQuestion',
+                gameId: gameState.gameId
+            }));
+            
+            clearInterval(questionTimer);
+            questionTimer = null;
+
+            // Ocultar el modal automáticamente después de 5 segundos
+            setTimeout(() => {
+                timeoutModal.classList.add('hidden');
+            }, 5000);
+        }
+    }, 1000);
+}
+
+function cancelQuestionTimer() {
+    if (questionTimer) {
+        clearInterval(questionTimer);
+        questionTimer = null;
+    }
+    const timerElement = document.getElementById('question-timer');
+    
+    if (timerElement) {
+        timerElement.textContent = '';
+        timerElement.classList.remove('warning', 'danger', 'waiting');
+    }
+}
+
+// Añadir event listener para el botón de cerrar el modal
+document.addEventListener('DOMContentLoaded', () => {
+    const closeTimeoutBtn = document.getElementById('close-timeout');
+    if (closeTimeoutBtn) {
+        closeTimeoutBtn.addEventListener('click', () => {
+            document.getElementById('timeout-modal').classList.add('hidden');
+        });
+    }
+}); 

@@ -96,6 +96,9 @@ function handleMessage(ws, data) {
         case 'guess':
             handleGuess(ws, data);
             break;
+        case 'skipQuestion':
+            skipQuestion(ws, data);
+            break;
         default:
             console.log('Tipo de mensaje no reconocido:', data.type);
     }
@@ -411,6 +414,43 @@ function handleGuess(ws, data) {
 
     // Terminar el juego
     game.status = 'finished';
+}
+
+function skipQuestion(ws, data) {
+    console.log('skipQuestion received');
+    const game = activeGames.get(data.gameId);
+    if (!game || game.status !== 'playing') {
+        ws.send(JSON.stringify({
+            type: 'error',
+            message: 'No se puede omitir la pregunta en este momento'
+        }));
+        return;
+    }
+    const player = game.players.find(p => p.ws === ws);
+    if (!player || game.currentTurn !== player.nick) {
+        ws.send(JSON.stringify({
+            type: 'error',
+            message: 'No es tu turno o no se puede omitir la pregunta'
+        }));
+        return;
+    }
+    const otherPlayer = game.players.find(p => p !== player);
+    if (!otherPlayer) {
+        ws.send(JSON.stringify({
+            type: 'error',
+            message: 'No hay oponente para cambiar el turno'
+        }));
+        return;
+    }
+    game.currentTurn = otherPlayer.nick;
+    game.players.forEach(p => {
+        p.ws.send(JSON.stringify({
+            type: 'turnChange',
+            currentTurn: game.currentTurn,
+            yourTurn: p.nick === game.currentTurn
+        }));
+    });
+    console.log('Turno cambiado automáticamente por omisión de pregunta');
 }
 
 // Mejorar el manejo de errores de WebSocket
