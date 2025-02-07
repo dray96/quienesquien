@@ -5,7 +5,39 @@ const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+
+// Configuración mejorada para WebSocket en Render
+const wss = new WebSocket.Server({ 
+    server,
+    clientTracking: true,
+    perMessageDeflate: {
+        zlibDeflateOptions: {
+            chunkSize: 1024,
+            memLevel: 7,
+            level: 3
+        },
+        zlibInflateOptions: {
+            chunkSize: 10 * 1024
+        }
+    },
+    // Aumentar el tiempo de timeout
+    pingTimeout: 60000,
+    pingInterval: 25000
+});
+
+// Middleware para logs
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+});
+
+// Middleware para manejar CORS
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    next();
+});
 
 // Servir archivos estáticos desde la carpeta public
 app.use(express.static('public'));
@@ -19,8 +51,13 @@ app.get('*', (req, res) => {
 const activeGames = new Map();
 
 // Manejar conexiones WebSocket
-wss.on('connection', (ws) => {
-    console.log('Nueva conexión establecida');
+wss.on('connection', (ws, req) => {
+    ws.id = Math.random().toString(36).substring(7);
+    ws.isAlive = true;
+    ws.on('pong', heartbeat);
+    
+    console.log(`Nueva conexión establecida - Cliente ID: ${ws.id}`);
+    console.log(`Total de clientes conectados: ${wss.clients.size}`);
 
     ws.on('message', (message) => {
         try {
@@ -355,8 +392,37 @@ function handleGuess(ws, data) {
     game.status = 'finished';
 }
 
+// Mejorar el manejo de errores de WebSocket
+wss.on('error', (error) => {
+    console.error('Error en WebSocket Server:', error);
+});
+
+// Función de heartbeat mejorada
+function heartbeat() {
+    this.isAlive = true;
+    console.log(`Heartbeat recibido de cliente ${this.id}`);
+}
+
+// Verificar conexiones cada 30 segundos
+const interval = setInterval(() => {
+    wss.clients.forEach((ws) => {
+        if (ws.isAlive === false) {
+            console.log(`Terminando conexión inactiva - Cliente ID: ${ws.id}`);
+            return ws.terminate();
+        }
+        
+        ws.isAlive = false;
+        ws.ping(() => {});
+    });
+}, 30000);
+
+wss.on('close', () => {
+    clearInterval(interval);
+});
+
 // Iniciar el servidor
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor iniciado en puerto ${PORT}`);
+    console.log(`Ambiente: ${process.env.NODE_ENV || 'desarrollo'}`);
 }); 

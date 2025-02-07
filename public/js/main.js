@@ -1,7 +1,8 @@
 // Configuración de WebSocket
-const WS_URL = window.location.hostname === 'localhost' 
-    ? `ws://${window.location.hostname}:3000`
-    : `wss://quien-es-quien-backend.onrender.com`; // Aquí pondrás la URL de tu backend desplegado
+const WS_URL = window.location.protocol === 'https:' 
+    ? `wss://${window.location.host}`
+    : `ws://${window.location.host}`;
+
 let ws = null;
 let gameState = {
     gameId: null,
@@ -11,6 +12,8 @@ let gameState = {
     isMyTurn: false,
     currentTurn: null
 };
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 5;
 
 // Elementos DOM
 const screens = {
@@ -69,23 +72,45 @@ function initializeEventListeners() {
     document.getElementById('close-result').addEventListener('click', hideResultModal);
 }
 
-// Conectar WebSocket
+// Conectar WebSocket con manejo de reconexión
 function connectWebSocket() {
+    console.log('Intentando conectar al WebSocket:', WS_URL);
+    
     ws = new WebSocket(WS_URL);
     
     ws.onopen = () => {
         console.log('Conectado al servidor WebSocket');
+        reconnectAttempts = 0; // Resetear intentos al conectar exitosamente
     };
     
     ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        console.log('Mensaje recibido:', data);
-        handleWebSocketMessage(data);
+        try {
+            const data = JSON.parse(event.data);
+            console.log('Mensaje recibido:', data);
+            handleWebSocketMessage(data);
+        } catch (error) {
+            console.error('Error al procesar mensaje:', error);
+        }
     };
     
-    ws.onclose = () => {
-        console.log('Desconectado del servidor WebSocket');
-        setTimeout(connectWebSocket, 5000);
+    ws.onclose = (event) => {
+        console.log('Desconectado del servidor WebSocket:', event.code, event.reason);
+        
+        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+            const timeout = Math.min(1000 * Math.pow(2, reconnectAttempts), 10000);
+            console.log(`Reintentando conexión en ${timeout/1000} segundos...`);
+            
+            setTimeout(() => {
+                reconnectAttempts++;
+                connectWebSocket();
+            }, timeout);
+        } else {
+            alert('Error de conexión con el servidor. Por favor, recarga la página.');
+        }
+    };
+
+    ws.onerror = (error) => {
+        console.error('Error en WebSocket:', error);
     };
 }
 
