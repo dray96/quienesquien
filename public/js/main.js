@@ -254,6 +254,9 @@ function handleGameReady(data) {
     gameState.currentTurn = data.currentTurn;
     gameState.isMyTurn = data.yourTurn;
     
+    // Actualizar el nombre del rival
+    document.getElementById('rival-name').textContent = data.opponent.nick;
+    
     showScreen('game');
     updateGameBoard();
     updateTurnIndicator();
@@ -763,8 +766,16 @@ function handleGuessResult(data) {
 function hideResultModal() {
     const resultModal = document.getElementById('result-modal');
     resultModal.classList.add('hidden');
-    // Redirigir al inicio o mostrar pantalla de fin de juego
-    showScreen('start');
+    
+    // Desconectar el WebSocket actual
+    if (ws) {
+        ws.close();
+    }
+    
+    // Recargar la página con un pequeño retraso para asegurar que la conexión se cierre
+    setTimeout(() => {
+        window.location.href = window.location.origin;
+    }, 500);
 }
 
 function handleOpponentDisconnected(data) {

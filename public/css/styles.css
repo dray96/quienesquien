@@ -220,11 +220,12 @@ button:hover {
 
 /* Pantalla de selección de personaje */
 #character-select {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+    text-align: center;
     padding: 20px;
-    min-height: 80vh;
+}
+
+#characters-grid {
+    margin-top: 20px;
 }
 
 #character-select.hidden {
@@ -1060,4 +1061,25 @@ button:hover {
     background: var(--primary-color);
     color: var(--button-text);
     border-color: var(--primary-hover);
+}
+
+.rival-info {
+    background: var(--surface-color);
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px var(--shadow-color);
+    border: 1px solid var(--card-border);
+}
+
+.rival-info h3 {
+    color: var(--text-color);
+    margin: 0;
+    font-size: 1.2em;
+    text-align: left;
+}
+
+.rival-info #rival-name {
+    color: var(--primary-color);
+    font-weight: bold;
 } 

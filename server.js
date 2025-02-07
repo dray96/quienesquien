@@ -241,29 +241,50 @@ function generateGameId() {
 }
 
 function handleDisconnection(ws) {
-    console.log('Cliente desconectado');
+    console.log(`Cliente desconectado - ID: ${ws.id}`);
     
-    // Buscar la partida donde el jugador estaba participando
+    // Buscar y limpiar la partida donde el jugador estaba participando
     for (const [gameId, game] of activeGames.entries()) {
         const playerIndex = game.players.findIndex(p => p.ws === ws);
         
-        if (playerIndex !== -1 && game.status === 'playing') {
-            // Encontramos al jugador en una partida activa
+        if (playerIndex !== -1) {
+            // Encontramos al jugador en una partida
             const otherPlayer = game.players[playerIndex === 0 ? 1 : 0];
             
-            // Notificar al jugador restante que ganó por desconexión
-            if (otherPlayer && otherPlayer.ws.readyState === WebSocket.OPEN) {
-                otherPlayer.ws.send(JSON.stringify({
-                    type: 'opponentDisconnected',
-                    message: 'Tu oponente abandonó, Ganaste por default'
-                }));
+            if (game.status === 'playing') {
+                // Si la partida estaba en curso, notificar al otro jugador
+                if (otherPlayer && otherPlayer.ws.readyState === WebSocket.OPEN) {
+                    otherPlayer.ws.send(JSON.stringify({
+                        type: 'opponentDisconnected',
+                        message: 'Tu oponente abandonó, Ganaste por default'
+                    }));
+                }
             }
             
-            // Marcar la partida como terminada
-            game.status = 'finished';
+            // Eliminar al jugador de la partida
+            game.players.splice(playerIndex, 1);
+            
+            // Si no quedan jugadores, eliminar la partida
+            if (game.players.length === 0) {
+                activeGames.delete(gameId);
+                console.log(`Partida ${gameId} eliminada por falta de jugadores`);
+            }
+            
             break;
         }
     }
+    
+    // Terminar la conexión explícitamente
+    if (ws.readyState === WebSocket.OPEN) {
+        ws.terminate();
+    }
+    
+    // Mostrar el número real de clientes conectados
+    const activeClients = Array.from(wss.clients).filter(client => 
+        client.readyState === WebSocket.OPEN
+    ).length;
+    
+    console.log(`Total de clientes conectados activos: ${activeClients}`);
 }
 
 // Añadir estas nuevas funciones para manejar preguntas y respuestas
@@ -408,6 +429,7 @@ const interval = setInterval(() => {
     wss.clients.forEach((ws) => {
         if (ws.isAlive === false) {
             console.log(`Terminando conexión inactiva - Cliente ID: ${ws.id}`);
+            handleDisconnection(ws);
             return ws.terminate();
         }
         

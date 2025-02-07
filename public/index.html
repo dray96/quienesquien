@@ -31,13 +31,16 @@
 
         <!-- Pantalla de selección de personaje -->
         <div id="character-select" class="screen hidden">
-            <h2>Selecciona tu personaje</h2>
-            <div id="timer">Tiempo restante: <span id="time">20</span>s</div>
+            <h2>¿Quien es quién?</h2>
             <div id="characters-grid"></div>
         </div>
 
+
         <!-- Pantalla de juego -->
         <div id="game-screen" class="screen hidden">
+            <div class="rival-info">
+                <h3>Jugando contra: <span id="rival-name"></span></h3>
+            </div>
             <div class="game-layout">
                 <div class="sidebar">
                     <div class="player-info">
